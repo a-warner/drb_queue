@@ -87,4 +87,20 @@ describe DrbQueue do
       expect(Benchmark.realtime { DrbQueue.enqueue(SleepyWorker) }).to be < 1
     end
   end
+
+  class ExceptionWorker
+    def self.perform
+      raise "Get me outta here!"
+    end
+  end
+
+  context ExceptionWorker do
+    it 'should continue operating normally' do
+      DrbQueue.enqueue(ExceptionWorker)
+      sleep 0.1
+      DrbQueue.enqueue(SetKeyToValueWorker, 'a', 'b')
+      sleep 0.1
+      expect(Redis.current.get('a')).to eq('b')
+    end
+  end
 end

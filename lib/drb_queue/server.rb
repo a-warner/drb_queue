@@ -14,7 +14,8 @@ module DrbQueue
       end
     end
 
-    def initialize(num_workers)
+    def initialize(logger, num_workers)
+      @logger = logger
       @queue = Queue.new
 
       start_workers(num_workers)
@@ -38,13 +39,17 @@ module DrbQueue
       num.times do
         Thread.new do
           while work = queue.pop
-            work.call
+            begin
+              work.call
+            rescue => e
+              logger.error(([e.message] + e.backtrace).join("\n"))
+            end
           end
         end
       end
     end
 
     private
-    attr_reader :queue
+    attr_reader :queue, :logger
   end
 end

@@ -1,11 +1,11 @@
 module DrbQueue
   class Configuration
-    attr_accessor :socket_location
-    attr_accessor :num_workers
+    attr_accessor :socket_location, :num_workers, :logger
 
     def initialize
       self.socket_location = '/tmp/drb_queue'
       self.num_workers = 1
+      self.logger = Logger.new(STDOUT)
     end
 
     def after_fork(&block)
