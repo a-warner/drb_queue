@@ -15,13 +15,22 @@ describe DrbQueue do
     end
   end
 
+  def per_test_configuration(config); end
+
   before do
     connect_to_redis!
+
+    DrbQueue.configure do |c|
+      @old_config = c.dup
+      per_test_configuration(c)
+    end
+
     DrbQueue.start!
   end
 
   after do
     DrbQueue.kill_server!
+    DrbQueue.instance_variable_set('@configuration', @old_config)
     Redis.current.flushall
   end
 
@@ -48,6 +57,22 @@ describe DrbQueue do
       DrbQueue.enqueue(SetKeyToValueWorker, key, value)
       sleep 0.2
       expect(Redis.current.get(key)).to eq(value)
+    end
+
+    context 'in parallel' do
+      def per_test_configuration(config)
+        config.num_workers = 5
+      end
+
+      it 'should do work in parallel' do
+        time = Benchmark.realtime do
+          5.times { |i| DrbQueue.enqueue(SetKeyToValueWorker, i, i.to_s, :sleep_before_working) }
+          sleep 0.2
+          5.times { |i| expect(Redis.current.get(i)).to eq(i.to_s) }
+        end
+
+        expect(time).to be < 0.4
+      end
     end
   end
 

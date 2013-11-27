@@ -62,7 +62,7 @@ module DrbQueue
     fork do
       execute_after_fork_callbacks
 
-      DRb.start_service(server_uri, Server.new)
+      DRb.start_service(server_uri, Server.new(num_workers))
       DRb.thread.join
     end.tap do |pid|
       tries = 0
@@ -92,7 +92,7 @@ module DrbQueue
   def configuration
     @configuration ||= Configuration.new
   end
-  def_delegators :configuration, :server_uri, :socket_location, :before_fork_callbacks, :after_fork_callbacks
+  def_delegators :configuration, :server_uri, :socket_location, :before_fork_callbacks, :after_fork_callbacks, :num_workers
 
   def synchronize(&block)
     synchronization_mutex.synchronize(&block)

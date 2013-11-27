@@ -14,10 +14,10 @@ module DrbQueue
       end
     end
 
-    def initialize
+    def initialize(num_workers)
       @queue = Queue.new
 
-      start_worker!
+      start_workers(num_workers)
     end
 
     def enqueue(worker, *args)
@@ -34,10 +34,12 @@ module DrbQueue
       'pong'
     end
 
-    def start_worker!
-      Thread.new do
-        while work = queue.pop
-          work.call
+    def start_workers(num)
+      num.times do
+        Thread.new do
+          while work = queue.pop
+            work.call
+          end
         end
       end
     end
