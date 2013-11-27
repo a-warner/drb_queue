@@ -21,22 +21,35 @@ module DrbQueue
   end
 
   def start!
-    @pid = fork_server
-    @started = true
+    raise Server::AlreadyStarted, "The server is already started" if started?
+
+    synchronize do
+      return if started?
+
+      @pid = fork_server
+      @started = true
+    end
   end
 
   def configure
     raise ConfiguredAfterStarted, "You must configure #{self.name} BEFORE starting the server" if started?
 
-    yield configuration
+    synchronize { yield configuration }
   end
 
   def kill_server!
     return unless started?
 
-    Process.kill('KILL', pid)
-    Process.wait
-    FileUtils.rm(socket_location) if File.exist?(socket_location)
+    synchronize do
+      return unless started?
+
+      Process.kill('KILL', pid)
+      Process.wait
+      FileUtils.rm(socket_location) if File.exist?(socket_location)
+
+      @started = false
+      @pid = nil
+    end
   end
 
   private
@@ -87,5 +100,13 @@ module DrbQueue
 
   def socket_location
     "/tmp/drbqueue"
+  end
+
+  def synchronize(&block)
+    synchronization_mutex.synchronize(&block)
+  end
+
+  def synchronization_mutex
+    @synchronization_mutex ||= Mutex.new
   end
 end

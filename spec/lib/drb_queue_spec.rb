@@ -13,20 +13,21 @@ describe DrbQueue do
         connect_to_redis!
       end
     end
-
-    DrbQueue.start!
   end
 
   before do
     connect_to_redis!
+    DrbQueue.start!
   end
 
   after do
+    DrbQueue.kill_server!
     Redis.current.flushall
   end
 
   class SetKeyToValueWorker
     def self.perform(key, value)
+      sleep 0.1
       Redis.current.set(key, value)
     end
   end
@@ -35,13 +36,11 @@ describe DrbQueue do
     let(:key) { 'foo' }
     let(:value) { 'bar' }
 
-    before do
+    it 'should do work asynchronously' do
       id = DrbQueue.enqueue(SetKeyToValueWorker, key, value)
-      # DrbQueue.wait_for(id)
-      sleep 1
+      expect(Redis.current.get(key)).to be_nil
+      sleep 0.2
+      expect(Redis.current.get(key)).to eq(value)
     end
-
-    subject { Redis.current.get(key) }
-    it { should == value }
   end
 end
