@@ -1,5 +1,11 @@
 module DrbQueue
   class Configuration
+    attr_accessor :socket_location
+
+    def initialize
+      self.socket_location = '/tmp/drb_queue'
+    end
+
     def after_fork(&block)
       after_fork_callbacks << block
     end
@@ -14,6 +20,10 @@ module DrbQueue
 
     def before_fork_callbacks
       @before_fork_callbacks ||= []
+    end
+
+    def server_uri
+      "drbunix:#{socket_location}"
     end
   end
 end

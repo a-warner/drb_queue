@@ -5,6 +5,7 @@ require "fileutils"
 
 module DrbQueue
   extend self
+  extend Forwardable
 
   autoload :Server, 'drb_queue/server'
   autoload :Configuration, 'drb_queue/configuration'
@@ -76,31 +77,22 @@ module DrbQueue
         retry
       end
 
-      at_exit do
-        kill_server!
-      end
+      at_exit { kill_server! }
     end
   end
 
   def execute_before_fork_callbacks
-    configuration.before_fork_callbacks.each(&:call)
+    before_fork_callbacks.each(&:call)
   end
 
   def execute_after_fork_callbacks
-    configuration.after_fork_callbacks.each(&:call)
+    after_fork_callbacks.each(&:call)
   end
 
   def configuration
     @configuration ||= Configuration.new
   end
-
-  def server_uri
-    "drbunix:#{socket_location}"
-  end
-
-  def socket_location
-    "/tmp/drbqueue"
-  end
+  def_delegators :configuration, :server_uri, :socket_location, :before_fork_callbacks, :after_fork_callbacks
 
   def synchronize(&block)
     synchronization_mutex.synchronize(&block)
