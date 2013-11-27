@@ -5,3 +5,4 @@ require 'rubygems'
 require 'bundler/setup'
 Bundler.require(:development)
 require 'drb_queue'
+require 'benchmark'

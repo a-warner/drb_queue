@@ -50,4 +50,16 @@ describe DrbQueue do
       expect(Redis.current.get(key)).to eq(value)
     end
   end
+
+  class SleepyWorker
+    def self.perform
+      sleep 100
+    end
+  end
+
+  context SleepyWorker do
+    it 'should not block regular execution' do
+      expect(Benchmark.realtime { DrbQueue.enqueue(SleepyWorker) }).to be < 1
+    end
+  end
 end
