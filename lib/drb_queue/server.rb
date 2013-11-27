@@ -6,6 +6,14 @@ module DrbQueue
     NotStarted = Class.new(StandardError)
     AlreadyStarted = Class.new(StandardError)
 
+    class UnableToStart < StandardError
+      attr_reader :cause
+      def initialize(message, cause)
+        super("#{message}: Cause is #{cause.inspect}")
+        @cause = cause
+      end
+    end
+
     def initialize
       @queue = Queue.new
 

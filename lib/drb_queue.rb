@@ -70,7 +70,7 @@ module DrbQueue
         @server = DRbObject.new_with_uri(server_uri)
         @server.ping
       rescue DRb::DRbConnError => e
-        raise if tries > 3
+        raise Server::UnableToStart.new("Couldn't start up the queue server", e) if tries > 3
         tries += 1
         sleep 0.2
         retry
