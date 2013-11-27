@@ -8,14 +8,14 @@ Gem::Specification.new do |spec|
   spec.version       = Drbqueue::VERSION
   spec.authors       = ["Andrew Warner"]
   spec.email         = ["wwarner.andrew@gmail.com"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
+  spec.description   = %q{Simple drb-based queue/worker system}
+  spec.summary       = %q{Simple drb-based queue/worker system}
   spec.homepage      = ""
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
+  spec.test_files    = spec.files.grep(%r{^(spec|features)/})
   spec.require_paths = ["lib"]
 
   spec.add_development_dependency "bundler", "~> 1.3"
