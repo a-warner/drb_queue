@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'drbqueue/version'
+require 'drb_queue/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "drbqueue"
-  spec.version       = Drbqueue::VERSION
+  spec.name          = "drb_queue"
+  spec.version       = DrbQueue::VERSION
   spec.authors       = ["Andrew Warner"]
   spec.email         = ["wwarner.andrew@gmail.com"]
   spec.description   = %q{Simple drb-based queue/worker system}

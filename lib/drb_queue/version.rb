@@ -1,3 +1,3 @@
-module Drbqueue
+module DrbQueue
   VERSION = "0.0.1"
 end
