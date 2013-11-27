@@ -26,8 +26,8 @@ describe DrbQueue do
   end
 
   class SetKeyToValueWorker
-    def self.perform(key, value)
-      sleep 0.1
+    def self.perform(key, value, sleep_before_working = false)
+      sleep 0.1 if sleep_before_working
       Redis.current.set(key, value)
     end
   end
@@ -37,8 +37,15 @@ describe DrbQueue do
     let(:value) { 'bar' }
 
     it 'should do work asynchronously' do
-      id = DrbQueue.enqueue(SetKeyToValueWorker, key, value)
+      DrbQueue.enqueue(SetKeyToValueWorker, key, value, :sleep_before_working)
       expect(Redis.current.get(key)).to be_nil
+      sleep 0.2
+      expect(Redis.current.get(key)).to eq(value)
+    end
+
+    it 'should do work in order' do
+      DrbQueue.enqueue(SetKeyToValueWorker, key, 'nottherightanswer')
+      DrbQueue.enqueue(SetKeyToValueWorker, key, value)
       sleep 0.2
       expect(Redis.current.get(key)).to eq(value)
     end
