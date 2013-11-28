@@ -1,7 +1,7 @@
 require "uuid"
 require "thread"
 
-module DrbQueue
+module DRbQueue
   class Server
     NotStarted = Class.new(StandardError)
     AlreadyStarted = Class.new(StandardError)

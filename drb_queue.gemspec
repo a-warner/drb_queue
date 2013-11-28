@@ -5,7 +5,7 @@ require 'drb_queue/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "drb_queue"
-  spec.version       = DrbQueue::VERSION
+  spec.version       = DRbQueue::VERSION
   spec.authors       = ["Andrew Warner"]
   spec.email         = ["wwarner.andrew@gmail.com"]
   spec.description   = %q{Simple drb-based queue/worker system}

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe DrbQueue do
+describe DRbQueue do
   it { should_not be_nil }
 
   def connect_to_redis!
@@ -8,7 +8,7 @@ describe DrbQueue do
   end
 
   before(:all) do
-    DrbQueue.configure do |c|
+    DRbQueue.configure do |c|
       c.after_fork do
         connect_to_redis!
       end
@@ -20,17 +20,17 @@ describe DrbQueue do
   before do
     connect_to_redis!
 
-    DrbQueue.configure do |c|
+    DRbQueue.configure do |c|
       @old_config = c.dup
       per_test_configuration(c)
     end
 
-    DrbQueue.start!
+    DRbQueue.start!
   end
 
   after do
-    DrbQueue.kill_server!
-    DrbQueue.instance_variable_set('@configuration', @old_config)
+    DRbQueue.kill_server!
+    DRbQueue.instance_variable_set('@configuration', @old_config)
     Redis.current.flushall
   end
 
@@ -46,15 +46,15 @@ describe DrbQueue do
     let(:value) { 'bar' }
 
     it 'should do work asynchronously' do
-      DrbQueue.enqueue(SetKeyToValueWorker, key, value, :sleep_before_working)
+      DRbQueue.enqueue(SetKeyToValueWorker, key, value, :sleep_before_working)
       expect(Redis.current.get(key)).to be_nil
       sleep 0.2
       expect(Redis.current.get(key)).to eq(value)
     end
 
     it 'should do work in order' do
-      DrbQueue.enqueue(SetKeyToValueWorker, key, 'nottherightanswer')
-      DrbQueue.enqueue(SetKeyToValueWorker, key, value)
+      DRbQueue.enqueue(SetKeyToValueWorker, key, 'nottherightanswer')
+      DRbQueue.enqueue(SetKeyToValueWorker, key, value)
       sleep 0.2
       expect(Redis.current.get(key)).to eq(value)
     end
@@ -66,7 +66,7 @@ describe DrbQueue do
 
       it 'should do work in parallel' do
         time = Benchmark.realtime do
-          5.times { |i| DrbQueue.enqueue(SetKeyToValueWorker, i, i.to_s, :sleep_before_working) }
+          5.times { |i| DRbQueue.enqueue(SetKeyToValueWorker, i, i.to_s, :sleep_before_working) }
           sleep 0.2
           5.times { |i| expect(Redis.current.get(i)).to eq(i.to_s) }
         end
@@ -84,7 +84,7 @@ describe DrbQueue do
 
   context SleepyWorker do
     it 'should not block regular execution' do
-      expect(Benchmark.realtime { DrbQueue.enqueue(SleepyWorker) }).to be < 1
+      expect(Benchmark.realtime { DRbQueue.enqueue(SleepyWorker) }).to be < 1
     end
   end
 
@@ -96,9 +96,9 @@ describe DrbQueue do
 
   context ExceptionWorker do
     it 'should continue operating normally' do
-      DrbQueue.enqueue(ExceptionWorker)
+      DRbQueue.enqueue(ExceptionWorker)
       sleep 0.1
-      DrbQueue.enqueue(SetKeyToValueWorker, 'a', 'b')
+      DRbQueue.enqueue(SetKeyToValueWorker, 'a', 'b')
       sleep 0.1
       expect(Redis.current.get('a')).to eq('b')
     end

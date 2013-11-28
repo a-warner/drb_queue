@@ -1,4 +1,4 @@
-module DrbQueue
+module DRbQueue
   class Configuration
     attr_accessor :socket_location, :num_workers, :logger
 

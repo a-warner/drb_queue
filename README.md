@@ -1,4 +1,4 @@
-# DrbQueue
+# DRbQueue
 
 TODO: Write a gem description
 

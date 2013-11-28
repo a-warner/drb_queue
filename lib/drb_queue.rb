@@ -3,7 +3,7 @@ require 'drb/drb'
 require 'drb/unix'
 require "fileutils"
 
-module DrbQueue
+module DRbQueue
   extend self
   extend Forwardable
 
