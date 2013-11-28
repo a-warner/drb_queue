@@ -126,4 +126,14 @@ describe DRbQueue do
       expect(Redis.current.get('immediate')).to eq('results')
     end
   end
+
+  context 'error cases' do
+    it 'should blow up if something besides a module is passed in' do
+      expect { DRbQueue.enqueue('hahaha', 1, 2) }.to raise_error ArgumentError
+    end
+
+    it 'should blow up unless the module responds to perform' do
+      expect { DRbQueue.enqueue(Class.new) }.to raise_error ArgumentError
+    end
+  end
 end

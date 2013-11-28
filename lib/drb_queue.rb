@@ -15,10 +15,12 @@ module DRbQueue
   attr_reader :started
   alias_method :started?, :started
 
-  def enqueue(*args)
+  def enqueue(worker, *args)
     raise Server::NotStarted, "You must start the server first" unless started?
+    raise ArgumentError, "#{worker} is not a module" unless worker.is_a?(Module)
+    raise ArgumentError, "#{worker} does not respond to perform" unless worker.respond_to?(:perform)
 
-    server.enqueue(*args)
+    server.enqueue(worker, *args)
   end
 
   def start!
