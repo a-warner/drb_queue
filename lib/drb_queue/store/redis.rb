@@ -2,7 +2,7 @@ module DRbQueue
   class Store
     class Redis < Store
       def initialize(options = {})
-        @redis = options.fetch(:redis, ::Redis.current)
+        @redis = options.fetch(:redis, lambda { ::Redis.current }).call
       end
 
       def persist(work)
