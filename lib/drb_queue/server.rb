@@ -17,6 +17,7 @@ module DRbQueue
     def initialize(configuration)
       @logger = configuration.logger
       @error_handler = configuration.error_handler
+      @immediate = configuration.immediate
       @queue = Queue.new
 
       start_workers(configuration.num_workers)
@@ -24,7 +25,13 @@ module DRbQueue
 
     def enqueue(worker, *args)
       uuid.generate.tap do |id|
-        queue << lambda { worker.perform(*args) }
+        work = lambda { worker.perform(*args) }
+
+        if immediate?
+          work.call
+        else
+          queue << work
+        end
       end
     end
 
@@ -37,7 +44,8 @@ module DRbQueue
     end
 
     private
-    attr_reader :queue, :logger, :error_handler
+    attr_reader :queue, :logger, :error_handler, :immediate
+    alias_method :immediate?, :immediate
 
     def start_workers(num)
       num.times { start_worker }

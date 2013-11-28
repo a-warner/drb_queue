@@ -115,4 +115,15 @@ describe DRbQueue do
       expect(Redis.current.get('error')).not_to be_nil
     end
   end
+
+  context 'immediate mode' do
+    def per_test_configuration(config)
+      config.immediate!
+    end
+
+    it 'should do work synchronously' do
+      DRbQueue.enqueue(SetKeyToValueWorker, 'immediate', 'results', :sleep_time_before_working => 0.1)
+      expect(Redis.current.get('immediate')).to eq('results')
+    end
+  end
 end

@@ -1,12 +1,16 @@
 module DRbQueue
   class Configuration
-    attr_accessor :socket_location, :num_workers, :logger, :error_handler
+    attr_accessor :socket_location, :num_workers, :logger, :error_handler, :immediate
 
     def initialize
       self.socket_location = '/tmp/drb_queue'
       self.num_workers = 1
       self.logger = Logger.new(STDOUT)
       self.error_handler = lambda { |e| logger.error(([e.message] + e.backtrace).join("\n")) }
+    end
+
+    def immediate!
+      self.immediate = true
     end
 
     def on_error(&block)
