@@ -28,8 +28,9 @@ describe DRbQueue do
     DRbQueue.start!
   end
 
+  let(:shutdown_immediately) { false }
   after do
-    DRbQueue.shutdown!
+    DRbQueue.shutdown!(shutdown_immediately)
     DRbQueue.instance_variable_set('@configuration', @old_config)
     Redis.current.flushall
   end
@@ -83,6 +84,8 @@ describe DRbQueue do
   end
 
   context SleepyWorker do
+    let(:shutdown_immediately) { true }
+
     it 'should not block regular execution' do
       expect(Benchmark.realtime { DRbQueue.enqueue(SleepyWorker) }).to be < 1
     end
@@ -134,6 +137,25 @@ describe DRbQueue do
 
     it 'should blow up unless the module responds to perform' do
       expect { DRbQueue.enqueue(Class.new) }.to raise_error ArgumentError
+    end
+  end
+
+  context 'job persistence' do
+    def per_test_configuration(config)
+      require 'drb_queue/store/redis'
+      config.store DRbQueue::Store::Redis
+    end
+
+    it 'should persist jobs on clean shutdown' do
+      5.times { |i| DRbQueue.enqueue(SetKeyToValueWorker, i, i.to_s, :sleep_time_before_working => 0.1) }
+      DRbQueue.shutdown!
+
+      expect(0.upto(4).all? { |i| Redis.current.get(i) == i.to_s }).to be_false
+
+      DRbQueue.start!
+      sleep 0.5
+
+      expect(0.upto(4).all? { |i| Redis.current.get(i) == i.to_s }).to be_true
     end
   end
 end

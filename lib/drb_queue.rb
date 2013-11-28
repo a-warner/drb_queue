@@ -2,6 +2,8 @@ require "drb_queue/version"
 require 'drb/drb'
 require 'drb/unix'
 require "fileutils"
+require 'timeout'
+require 'json'
 
 module DRbQueue
   extend self
@@ -40,18 +42,25 @@ module DRbQueue
     synchronize { yield configuration }
   end
 
-  def shutdown!
+  def shutdown!(immediately = false)
     return unless started?
 
     synchronize do
       return unless started?
 
-      Process.kill('KILL', pid)
-      Process.wait
-      FileUtils.rm(socket_location) if File.exist?(socket_location)
+      Process.kill(immediately ? 'KILL' : 'TERM', pid)
 
-      @started = false
-      @pid = nil
+      begin
+        ::Timeout.timeout(20) { Process.wait }
+      rescue Timeout::Error
+        Process.kill('KILL', pid)
+        Process.wait
+        logger.error("#{self}: forced shutdown")
+      ensure
+        FileUtils.rm(socket_location) if File.exist?(socket_location)
+        @started = false
+        @pid = nil
+      end
     end
   end
 
@@ -64,8 +73,15 @@ module DRbQueue
     fork do
       execute_after_fork_callbacks
 
-      DRb.start_service(server_uri, Server.new(configuration))
-      DRb.thread.join
+      server = Server.new(configuration)
+      DRb.start_service(server_uri, server)
+
+      shutting_down = false
+      trap('TERM') { shutting_down = true }
+      sleep 0.1 until shutting_down
+
+      server.shutdown!
+      DRb.stop_service
     end.tap do |pid|
       tries = 0
 
