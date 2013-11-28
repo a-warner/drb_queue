@@ -57,7 +57,7 @@ module DRbQueue
         Process.wait
         logger.error("#{self}: forced shutdown")
       ensure
-        FileUtils.rm(socket_location) if File.exist?(socket_location)
+        cleanup_socket
         @started = false
         @pid = nil
       end
@@ -68,6 +68,8 @@ module DRbQueue
   attr_reader :pid, :server
 
   def fork_server
+    cleanup_socket
+
     execute_before_fork_callbacks
 
     fork do
@@ -118,5 +120,9 @@ module DRbQueue
 
   def synchronization_mutex
     @synchronization_mutex ||= Mutex.new
+  end
+
+  def cleanup_socket
+    FileUtils.rm(socket_location) if File.exist?(socket_location)
   end
 end
