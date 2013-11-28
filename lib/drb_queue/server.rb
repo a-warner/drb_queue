@@ -14,11 +14,12 @@ module DRbQueue
       end
     end
 
-    def initialize(logger, num_workers)
-      @logger = logger
+    def initialize(configuration)
+      @logger = configuration.logger
+      @error_handler = configuration.error_handler
       @queue = Queue.new
 
-      start_workers(num_workers)
+      start_workers(configuration.num_workers)
     end
 
     def enqueue(worker, *args)
@@ -35,21 +36,25 @@ module DRbQueue
       'pong'
     end
 
+    private
+    attr_reader :queue, :logger, :error_handler
+
     def start_workers(num)
-      num.times do
-        Thread.new do
-          while work = queue.pop
-            begin
-              work.call
-            rescue => e
-              logger.error(([e.message] + e.backtrace).join("\n"))
-            end
+      num.times { start_worker }
+    end
+
+    def start_worker
+      Thread.new do
+        while work = queue.pop
+          begin
+            work.call
+          rescue => e
+            error_handler.call(e)
+            start_worker
+            break
           end
         end
       end
     end
-
-    private
-    attr_reader :queue, :logger
   end
 end

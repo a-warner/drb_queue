@@ -62,7 +62,7 @@ module DRbQueue
     fork do
       execute_after_fork_callbacks
 
-      DRb.start_service(server_uri, Server.new(logger, num_workers))
+      DRb.start_service(server_uri, Server.new(configuration))
       DRb.thread.join
     end.tap do |pid|
       tries = 0

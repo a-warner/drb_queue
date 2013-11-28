@@ -102,5 +102,17 @@ describe DRbQueue do
       sleep 0.1
       expect(Redis.current.get('a')).to eq('b')
     end
+
+    def per_test_configuration(config)
+      config.on_error do |e|
+        Redis.current.set('error', e.message)
+      end
+    end
+
+    it 'allows custom exception handlers' do
+      DRbQueue.enqueue(ExceptionWorker)
+      sleep 0.1
+      expect(Redis.current.get('error')).not_to be_nil
+    end
   end
 end
