@@ -38,7 +38,7 @@ module DRbQueue
     synchronize { yield configuration }
   end
 
-  def kill_server!
+  def shutdown!
     return unless started?
 
     synchronize do
@@ -77,7 +77,7 @@ module DRbQueue
         retry
       end
 
-      at_exit { kill_server! }
+      at_exit { shutdown! }
     end
   end
 

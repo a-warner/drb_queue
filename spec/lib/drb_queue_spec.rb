@@ -29,7 +29,7 @@ describe DRbQueue do
   end
 
   after do
-    DRbQueue.kill_server!
+    DRbQueue.shutdown!
     DRbQueue.instance_variable_set('@configuration', @old_config)
     Redis.current.flushall
   end
