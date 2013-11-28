@@ -35,8 +35,8 @@ describe DRbQueue do
   end
 
   class SetKeyToValueWorker
-    def self.perform(key, value, sleep_before_working = false)
-      sleep 0.1 if sleep_before_working
+    def self.perform(key, value, options = {})
+      sleep options[:sleep_time_before_working] if options[:sleep_time_before_working]
       Redis.current.set(key, value)
     end
   end
@@ -46,7 +46,7 @@ describe DRbQueue do
     let(:value) { 'bar' }
 
     it 'should do work asynchronously' do
-      DRbQueue.enqueue(SetKeyToValueWorker, key, value, :sleep_before_working)
+      DRbQueue.enqueue(SetKeyToValueWorker, key, value, :sleep_time_before_working => 0.1)
       expect(Redis.current.get(key)).to be_nil
       sleep 0.2
       expect(Redis.current.get(key)).to eq(value)
@@ -66,7 +66,7 @@ describe DRbQueue do
 
       it 'should do work in parallel' do
         time = Benchmark.realtime do
-          5.times { |i| DRbQueue.enqueue(SetKeyToValueWorker, i, i.to_s, :sleep_before_working) }
+          5.times { |i| DRbQueue.enqueue(SetKeyToValueWorker, i, i.to_s, :sleep_time_before_working => 0.1) }
           sleep 0.2
           5.times { |i| expect(Redis.current.get(i)).to eq(i.to_s) }
         end
