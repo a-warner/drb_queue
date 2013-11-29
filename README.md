@@ -1,6 +1,6 @@
 # DRbQueue
 
-TODO: Write a gem description
+![](https://travis-ci.org/a-warner/drb_queue.png)
 
 ## Installation
 
