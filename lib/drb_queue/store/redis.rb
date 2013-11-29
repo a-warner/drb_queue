@@ -1,10 +1,11 @@
 require 'redis'
+require 'redis-namespace'
 
 module DRbQueue
   class Store
     class Redis < Store
       def initialize(options = {})
-        @redis = options.fetch(:redis, lambda { ::Redis.current }).call
+        @redis = ::Redis::Namespace.new(:DRbQueue, :redis => options.fetch(:redis, lambda { ::Redis.new }).call)
       end
 
       def persist(work)
