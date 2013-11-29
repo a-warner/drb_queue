@@ -2,6 +2,8 @@
 
 ![](https://travis-ci.org/a-warner/drb_queue.png)
 
+Simple separate-process queue system using DRb
+
 ## Installation
 
 Add this line to your application's Gemfile:
