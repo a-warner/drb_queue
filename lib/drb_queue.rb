@@ -4,6 +4,7 @@ require 'drb/unix'
 require "fileutils"
 require 'timeout'
 require 'json'
+require 'monitor'
 
 module DRbQueue
   extend self
@@ -32,6 +33,9 @@ module DRbQueue
       return if started?
 
       @pid = fork_server
+      connect_client!
+
+      at_exit { shutdown! }
       @started = true
     end
   end
@@ -64,6 +68,22 @@ module DRbQueue
     end
   end
 
+  def connect_client!
+    synchronize do
+      tries = 0
+
+      begin
+        @server = DRbObject.new_with_uri(server_uri)
+        @server.ping
+      rescue DRb::DRbConnError => e
+        raise Server::UnableToStart.new("Couldn't start up the queue server", e) if tries > 3
+        tries += 1
+        sleep 0.2
+        retry
+      end
+    end
+  end
+
   private
   attr_reader :pid, :server
 
@@ -84,20 +104,6 @@ module DRbQueue
 
       server.shutdown!
       DRb.stop_service
-    end.tap do |pid|
-      tries = 0
-
-      begin
-        @server = DRbObject.new_with_uri(server_uri)
-        @server.ping
-      rescue DRb::DRbConnError => e
-        raise Server::UnableToStart.new("Couldn't start up the queue server", e) if tries > 3
-        tries += 1
-        sleep 0.2
-        retry
-      end
-
-      at_exit { shutdown! }
     end
   end
 
@@ -115,11 +121,11 @@ module DRbQueue
   def_delegators :configuration, :server_uri, :socket_location, :before_fork_callbacks, :after_fork_callbacks, :num_workers, :logger
 
   def synchronize(&block)
-    synchronization_mutex.synchronize(&block)
+    synchronization_monitor.synchronize(&block)
   end
 
-  def synchronization_mutex
-    @synchronization_mutex ||= Mutex.new
+  def synchronization_monitor
+    @synchronization_monitor ||= Monitor.new
   end
 
   def cleanup_socket
