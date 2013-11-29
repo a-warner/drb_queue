@@ -1,3 +1,5 @@
+require 'redis'
+
 module DRbQueue
   class Store
     class Redis < Store
