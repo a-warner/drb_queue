@@ -1,4 +1,5 @@
 require "drb_queue/version"
+require "drb_queue/store"
 require 'drb/drb'
 require 'drb/unix'
 require "fileutils"
