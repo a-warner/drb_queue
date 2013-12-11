@@ -34,10 +34,10 @@ module DRbQueue
       return if started?
 
       @pid = fork_server
-      connect_client!
-
       at_exit { shutdown! }
       @started = true
+
+      connect_client!
     end
   end
 
