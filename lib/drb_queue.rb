@@ -37,7 +37,12 @@ module DRbQueue
       at_exit { shutdown! }
       @started = true
 
-      connect_client!
+      begin
+        connect_client!
+      rescue => e
+        shutdown!
+        raise
+      end
     end
   end
 
